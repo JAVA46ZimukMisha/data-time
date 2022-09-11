@@ -61,7 +61,9 @@ public class PrintCalendar {
 	private static int getFirstColumn(int month, int year, int firstWeekDay) {
 		LocalDate firstMonthDate = LocalDate.of(year, month, 1);
 		int weekDay = firstMonthDate.getDayOfWeek().getValue();
-		return firstWeekDay<=weekDay ? weekDay - firstWeekDay : weekDay+7 - firstWeekDay;
+		return firstWeekDay<=weekDay 
+				? weekDay - firstWeekDay 
+						: weekDay+7 - firstWeekDay;
 	}
 
 	private static void printWeekDays(int weekDay) {
@@ -95,12 +97,31 @@ public class PrintCalendar {
 			if (args.length > 1) {
 				res[1] = getYear(args[1]);
 				if (args.length > 2) {
-					res[2] = DayOfWeek.valueOf(args[2].toUpperCase()).getValue();
+					res[2] = getFirstDayOfWeek(args[2].toUpperCase());
 				}
 			}
 		}
 
 		return res;
+	}
+
+	private static int getFirstDayOfWeek(String firstDayOfWeek)  throws Exception {
+		if (containsDay(firstDayOfWeek)){
+			int res = DayOfWeek.valueOf(firstDayOfWeek).getValue();
+			return res;
+		} else {
+			throw new Exception("first day of week should be sunday, monday, tuesday, wednesday, thursday, friday or saturday");
+		}
+		
+	}
+
+	private static boolean containsDay(String firstDayOfWeek) {
+		 for (DayOfWeek d : DayOfWeek.values()) {
+		        if (d.name().equals(firstDayOfWeek)) {
+		            return true;
+		        }
+		    }
+		return false;
 	}
 
 	private static int getYear(String yearStr) throws Exception {
