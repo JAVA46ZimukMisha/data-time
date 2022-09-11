@@ -106,22 +106,12 @@ public class PrintCalendar {
 	}
 
 	private static int getFirstDayOfWeek(String firstDayOfWeek)  throws Exception {
-		if (containsDay(firstDayOfWeek)){
-			int res = DayOfWeek.valueOf(firstDayOfWeek).getValue();
-			return res;
-		} else {
+		try {
+			return DayOfWeek.valueOf(firstDayOfWeek).getValue();
+		} catch ( RuntimeException e){
 			throw new Exception("first day of week should be sunday, monday, tuesday, wednesday, thursday, friday or saturday");
 		}
 		
-	}
-
-	private static boolean containsDay(String firstDayOfWeek) {
-		 for (DayOfWeek d : DayOfWeek.values()) {
-		        if (d.name().equals(firstDayOfWeek)) {
-		            return true;
-		        }
-		    }
-		return false;
 	}
 
 	private static int getYear(String yearStr) throws Exception {
