@@ -8,30 +8,56 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 
 public class PrintCalendar {
+	private static DayOfWeek[] daysOfWeek = DayOfWeek.values();
 
 	public static void main(String[] args) {
-		Locale.setDefault(Locale.ENGLISH);
-		DayOfWeek weekDay = DayOfWeek.valueOf("THURSDAY");
-		System.out.printf("%s\n", weekDay.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("ru")));
-		int monthYearDay[];
+
+		int monthYear[];
 		try {
-			monthYearDay = getMonthYearDay(args);
-			printCalendar(monthYearDay[0], monthYearDay[1], monthYearDay[2]);
+			monthYear = getMonthYear(args);
+			setFirstDay(args);
+			printCalendar(monthYear[0], monthYear[1]);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 
 	}
 
-	private static void printCalendar(int month, int year, int weekDay) {
-		printTitle(month, year);
-		printWeekDays(weekDay);
-		printDates(month, year, weekDay);
+	private static void setFirstDay(String[] args) throws Exception {
+		DayOfWeek[] sourceDays = DayOfWeek.values();
+		int daysOnWeek = sourceDays.length;
+		DayOfWeek firstDay = sourceDays[0];
+		if (args.length > 2) {
+			try {
+				firstDay = DayOfWeek.valueOf(args[2].toUpperCase());
+
+			} catch (Exception e) {
+				throw new Exception("wrong name of week day " + args[2]);
+			}
+		}
+		if (firstDay != sourceDays[0]) {
+			{
+				
+				int dayNumber = firstDay.getValue();
+				for (int i = 0; i < daysOfWeek.length; i++) {
+					int ind = dayNumber <= daysOnWeek ? dayNumber : dayNumber - daysOnWeek;
+					daysOfWeek[i] = sourceDays[ind - 1];
+					dayNumber++;
+				}
+			}
+		}
 
 	}
 
-	private static void printDates(int month, int year, int weekDay) {
-		int column = getFirstColumn(month, year, weekDay);
+	private static void printCalendar(int month, int year) {
+		printTitle(month, year);
+		printWeekDays();
+		printDates(month, year);
+
+	}
+
+	private static void printDates(int month, int year) {
+		int column = getFirstColumn(month, year);
 		printOffset(column);
 		int nDays = getMonthDays(month, year);
 		int nWeekDays = DayOfWeek.values().length;
@@ -58,26 +84,19 @@ public class PrintCalendar {
 
 	}
 
-	private static int getFirstColumn(int month, int year, int firstWeekDay) {
-		LocalDate firstMonthDate = LocalDate.of(year, month, 1);
-		int weekDay = firstMonthDate.getDayOfWeek().getValue();
-		return firstWeekDay<=weekDay 
-				? weekDay - firstWeekDay 
-						: weekDay+7 - firstWeekDay;
+	private static int getFirstColumn(int month, int year) {
+		LocalDate firstDateMonth = LocalDate.of(year, month, 1);
+		int firstWeekDay = firstDateMonth.getDayOfWeek().getValue();
+		int firstValue = daysOfWeek[0].getValue();
+		int delta = firstWeekDay - firstValue;
+
+		return delta >= 0 ? delta : delta + daysOfWeek.length;
 	}
 
-	private static void printWeekDays(int weekDay) {
-		DayOfWeek dayWeeks[] = new DayOfWeek[7];
-		int ind = 0;
-		for (int i = weekDay; i <= 7; i++) {
-			dayWeeks[ind++] = DayOfWeek.of(i);
-		}
-		for (int i = 1; i < weekDay; i++) {
-			dayWeeks[ind++] = DayOfWeek.of(i);
-		}
+	private static void printWeekDays() {
 		System.out.print("  ");
-		for (DayOfWeek weekDays : dayWeeks) {
-			System.out.printf("%s ", weekDays.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+		for (DayOfWeek weekDay : daysOfWeek) {
+			System.out.printf("%s ", weekDay.getDisplayName(TextStyle.SHORT, Locale.getDefault()));
 		}
 		System.out.println();
 
@@ -89,29 +108,17 @@ public class PrintCalendar {
 
 	}
 
-	private static int[] getMonthYearDay(String[] args) throws Exception {
+	private static int[] getMonthYear(String[] args) throws Exception {
 		LocalDate current = LocalDate.now();
-		int[] res = { current.getMonthValue(), current.getYear(), DayOfWeek.MONDAY.getValue() };
+		int[] res = { current.getMonthValue(), current.getYear() };
 		if (args.length > 0) {
 			res[0] = getMonth(args[0]);
 			if (args.length > 1) {
 				res[1] = getYear(args[1]);
-				if (args.length > 2) {
-					res[2] = getFirstDayOfWeek(args[2].toUpperCase());
-				}
 			}
 		}
 
 		return res;
-	}
-
-	private static int getFirstDayOfWeek(String firstDayOfWeek)  throws Exception {
-		try {
-			return DayOfWeek.valueOf(firstDayOfWeek).getValue();
-		} catch ( RuntimeException e){
-			throw new Exception("first day of week should be sunday, monday, tuesday, wednesday, thursday, friday or saturday");
-		}
-		
 	}
 
 	private static int getYear(String yearStr) throws Exception {
